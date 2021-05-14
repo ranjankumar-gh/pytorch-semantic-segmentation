@@ -16,7 +16,7 @@ class FCN8s(nn.Module):
                 # load the pretrained vgg16 used by the paper's author
                 vgg.load_state_dict(torch.load(vgg16_caffe_path))
             else:
-                vgg.load_state_dict(torch.load(vgg16_path))
+                vgg.load_state_dict(torch.load('PyTorchPretrained/vgg16-397923af.pth'))
         features, classifier = list(vgg.features.children()), list(vgg.classifier.children())
 
         '''
