@@ -2,8 +2,8 @@ import torch
 from torch import nn
 from torchvision import models
 
-#from ..utils import get_upsampling_weight
-#from .config import vgg16_path, vgg16_caffe_path
+from ..utils import get_upsampling_weight
+from .config import vgg16_path, vgg16_caffe_path
 
 
 # This is implemented in full accordance with the original one (https://github.com/shelhamer/fcn.berkeleyvision.org)
@@ -16,7 +16,7 @@ class FCN8s(nn.Module):
                 # load the pretrained vgg16 used by the paper's author
                 vgg.load_state_dict(torch.load(vgg16_caffe_path))
             else:
-                vgg.load_state_dict(torch.load('PyTorchPretrained/vgg16-397923af.pth'))
+                vgg.load_state_dict(torch.load(vgg16_path))
         features, classifier = list(vgg.features.children()), list(vgg.classifier.children())
 
         '''
@@ -64,18 +64,6 @@ class FCN8s(nn.Module):
         self.upscore2.weight.data.copy_(get_upsampling_weight(num_classes, num_classes, 4))
         self.upscore_pool4.weight.data.copy_(get_upsampling_weight(num_classes, num_classes, 4))
         self.upscore8.weight.data.copy_(get_upsampling_weight(num_classes, num_classes, 16))
-        
-    def get_upsampling_weight(in_channels, out_channels, kernel_size):
-        factor = (kernel_size + 1) // 2
-        if kernel_size % 2 == 1:
-            center = factor - 1
-        else:
-            center = factor - 0.5
-        og = np.ogrid[:kernel_size, :kernel_size]
-        filt = (1 - abs(og[0] - center) / factor) * (1 - abs(og[1] - center) / factor)
-        weight = np.zeros((in_channels, out_channels, kernel_size, kernel_size), dtype=np.float64)
-        weight[list(range(in_channels)), list(range(out_channels)), :, :] = filt
-        return torch.from_numpy(weight).float()
 
     def forward(self, x):
         x_size = x.size()
